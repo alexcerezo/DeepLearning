@@ -1,0 +1,11 @@
+image,age_approx,anatom_site_general,lesion_id,sex
+ISIC_0026707,40.0,anterior torso,HAM_0003247,female
+ISIC_0058425,70.0,lower extremity,BCN_0003772,male
+ISIC_0031247,55.0,lower extremity,HAM_0002698,female
+ISIC_0011386,60.0,lower extremity,,male
+ISIC_0028885,75.0,posterior torso,HAM_0005427,male
+ISIC_0067265,65.0,anterior torso,BCN_0002603,male
+ISIC_0033335,20.0,posterior torso,HAM_0005313,male
+ISIC_0056439,60.0,head/neck,BCN_0002967,female
+ISIC_0030886,45.0,,HAM_0003334,female
+ISIC_0067990,70.0,head/neck,BCN_0001457,female
