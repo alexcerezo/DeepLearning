@@ -1,0 +1,81 @@
+image,age_approx,anatom_site_general,lesion_id,sex,MEL,NV,BCC,AK,BKL,DF,VASC,SCC,UNK,clase
+ISIC_0055740,30.0,head/neck,BCN_0000443,male,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0067738,25.0,anterior torso,BCN_0003912,female,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0029093,70.0,lower extremity,HAM_0000476,male,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0012281_downsampled,25.0,,,male,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0031139,35.0,anterior torso,HAM_0006683,female,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0065269,25.0,anterior torso,BCN_0004190,male,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0071286,60.0,lower extremity,BCN_0002918,female,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0068651,50.0,lower extremity,BCN_0003300,female,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0031905,35.0,,HAM_0003320,male,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0069839,30.0,anterior torso,BCN_0002281,male,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,NV
+ISIC_0073237,45.0,lower extremity,BCN_0001536,female,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0063757,80.0,head/neck,BCN_0004761,male,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0059506,50.0,anterior torso,BCN_0003803,male,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0000077_downsampled,80.0,upper extremity,,male,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0064247,75.0,anterior torso,BCN_0003006,male,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0013606_downsampled,85.0,upper extremity,MSK4_0010513,male,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0070814,40.0,anterior torso,BCN_0004254,female,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0068717,45.0,lower extremity,BCN_0004508,female,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0053916,55.0,lower extremity,BCN_0002079,female,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0068847,75.0,anterior torso,BCN_0001883,male,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,MEL
+ISIC_0029161,60.0,anterior torso,HAM_0000164,male,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0056517,55.0,head/neck,BCN_0003430,female,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0024947,40.0,head/neck,HAM_0001721,male,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0072905,80.0,palms/soles,BCN_0002006,male,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0072782,85.0,head/neck,BCN_0002376,female,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0013764_downsampled,65.0,anterior torso,MSK4_0010678,male,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0024494,55.0,anterior torso,HAM_0002933,female,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0063001,50.0,anterior torso,BCN_0004921,female,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0069978,65.0,,BCN_0002733,female,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0058293,75.0,head/neck,BCN_0003684,female,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,BKL
+ISIC_0066028,55.0,lower extremity,BCN_0003703,female,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0066484,50.0,upper extremity,BCN_0001919,female,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0055121,70.0,upper extremity,BCN_0004731,male,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0027598,60.0,lower extremity,HAM_0002848,female,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0060327,70.0,upper extremity,BCN_0004731,male,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0071418,60.0,anterior torso,BCN_0005412,female,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0024330,40.0,lower extremity,HAM_0006188,male,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0029130,70.0,lower extremity,HAM_0000049,male,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0058565,50.0,upper extremity,BCN_0002549,female,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0055258,70.0,upper extremity,BCN_0004731,male,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,DF
+ISIC_0025089,65.0,head/neck,HAM_0002705,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0067643,75.0,head/neck,BCN_0005665,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0063621,70.0,,BCN_0003678,female,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0030714,70.0,head/neck,HAM_0003989,female,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0072519,55.0,head/neck,BCN_0002993,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0057930,70.0,head/neck,BCN_0003497,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0070863,80.0,head/neck,BCN_0005383,female,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0062409,70.0,head/neck,BCN_0000380,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0057131,85.0,lower extremity,BCN_0003720,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0056665,65.0,head/neck,BCN_0003915,male,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,SCC
+ISIC_0029123,80.0,posterior torso,HAM_0000451,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0027865,40.0,anterior torso,HAM_0000393,female,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0028059,40.0,posterior torso,HAM_0004273,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0068949,70.0,head/neck,BCN_0003940,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0053744,60.0,lower extremity,BCN_0005016,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0059159,80.0,upper extremity,BCN_0002013,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0070642,50.0,upper extremity,BCN_0002328,female,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0024634,80.0,posterior torso,HAM_0005933,female,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0031442,70.0,lower extremity,HAM_0005982,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0056218,80.0,anterior torso,BCN_0002132,male,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,BCC
+ISIC_0067285,40.0,anterior torso,BCN_0001948,female,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0064315,75.0,anterior torso,BCN_0001064,male,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0072964,30.0,anterior torso,BCN_0005600,male,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0066692,45.0,anterior torso,BCN_0000171,female,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0070356,75.0,upper extremity,BCN_0001725,male,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0059442,75.0,head/neck,BCN_0004610,male,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0028188,85.0,upper extremity,HAM_0004877,female,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0027665,50.0,anterior torso,HAM_0001860,male,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0031201,45.0,,HAM_0004549,male,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0025612,45.0,head/neck,HAM_0002177,female,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,VASC
+ISIC_0058988,50.0,head/neck,BCN_0003707,male,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0067266,30.0,anterior torso,BCN_0004092,female,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0056004,75.0,head/neck,BCN_0002793,male,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0072169,80.0,head/neck,BCN_0003549,female,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0029659,70.0,head/neck,HAM_0000673,female,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0053826,60.0,head/neck,BCN_0001326,male,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0066819,80.0,upper extremity,BCN_0001532,male,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0056662,50.0,anterior torso,BCN_0001706,male,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0065312,55.0,upper extremity,BCN_0004376,male,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
+ISIC_0063320,75.0,head/neck,BCN_0004457,female,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,AK
