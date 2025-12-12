@@ -1,6 +1,0 @@
-names:
-- lesion
-nc: 1
-path: /workspaces/DeepLearning/yolo_dataset
-train: train/images
-val: val/images
