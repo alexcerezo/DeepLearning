@@ -22,6 +22,7 @@ ENV/
 .idea/
 *.swp
 *.swo
+.config/
 *~
 
 # Sistema operativo

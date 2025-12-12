@@ -1,0 +1,13 @@
+names:
+- MEL
+- NV
+- BCC
+- AK
+- BKL
+- DF
+- VASC
+- SCC
+nc: 8
+path: /content/yolo_dataset
+train: train/images
+val: val/images
