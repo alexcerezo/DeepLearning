@@ -24,355 +24,177 @@
 }
 
 \begin{document}
-\title{Entrenamiento, Evaluación y Métodos Ensemble para Clasificación del Dataset Iris}
+\title{Clasificación de Lesiones Cutáneas mediante Aprendizaje Profundo con YOLO}
 
 \author{Alejandro Cerezo, Germán Torres y Daniil Nemchenko}
 
 \maketitle
 
 \begin{abstract}
-Este trabajo presenta un análisis exhaustivo del entrenamiento, evaluación y combinación de modelos de clasificación aplicados al dataset Iris mediante validación cruzada estratificada. Se implementaron cuatro algoritmos de aprendizaje automático fundamentales (K-Nearest Neighbors, Support Vector Machine, Random Forest y Naive Bayes), evaluados sobre nueve transformaciones diferentes del conjunto de datos (original, normalizado, estandarizado, y sus correspondientes versiones con reducción dimensional mediante PCA). Los modelos individuales se combinaron mediante tres estrategias de ensemble (votación, media y mediana de probabilidades). Los resultados revelan que KNN alcanza el mejor rendimiento individual con un F1-score de 0.9799 $\pm$ 0.0183 en datos originales, mientras que SVM obtiene el AUC más alto (0.9967) gracias al kernel RBF. El análisis detallado muestra que la reducción dimensional mediante PCA afecta diferencialmente a cada algoritmo según sus fundamentos teóricos. Los métodos de ensemble alcanzan rendimientos comparables a los modelos individuales, proporcionando una alternativa robusta para combinar múltiples clasificadores en escenarios prácticos.
+En este trabajo presentamos un sistema de clasificación de lesiones cutáneas basado en aprendizaje profundo utilizando la arquitectura YOLO (You Only Look Once). Hemos trabajado con el conjunto de datos ISIC 2019, que contiene imágenes dermatoscópicas de ocho tipos diferentes de lesiones de la piel, incluyendo melanoma, nevus, carcinoma basocelular, queratosis actínica, queratosis benigna, dermatofibroma, lesiones vasculares y carcinoma de células escamosas. Entrenamos tres variantes del modelo YOLOv8, específicamente las versiones nano, small y medium, utilizando un subconjunto de 100 imágenes por clase para entrenamiento y 10 imágenes por clase para evaluación. Nuestros resultados muestran que el modelo YOLOv8m alcanza el mejor rendimiento con un mAP50 de 0.664 y un mAP50-95 de 0.661, mientras que el modelo YOLOv8s obtiene la mayor accuracy en clasificación con 0.633. El análisis de las curvas de entrenamiento revela que nuestros modelos no presentan sobreajuste significativo y que las versiones más grandes de YOLO proporcionan mejoras graduales en el rendimiento a costa de mayor tiempo de inferencia.
 \end{abstract}
 
 \section{Introducción}
 
-La clasificación supervisada constituye uno de los pilares fundamentales del aprendizaje automático, con aplicaciones que abarcan desde el diagnóstico médico hasta el reconocimiento de patrones en imágenes y el procesamiento de lenguaje natural. Sin embargo, la obtención de estimaciones fiables del rendimiento de los modelos de clasificación requiere mucho más que la simple selección de un algoritmo y su entrenamiento con datos. Es necesario establecer una metodología rigurosa que contemple aspectos como el preprocesamiento de datos, la validación cruzada, la evaluación mediante múltiples métricas complementarias, y la consideración de técnicas de combinación que puedan mejorar tanto el rendimiento como la robustez de las predicciones.
+El cáncer de piel representa uno de los tipos de cáncer más frecuentes a nivel mundial, y la detección temprana de lesiones malignas como el melanoma resulta fundamental para mejorar el pronóstico de los pacientes. En este contexto, las técnicas de aprendizaje profundo han demostrado un potencial extraordinario para asistir a los dermatólogos en el diagnóstico de lesiones cutáneas a partir de imágenes dermatoscópicas. La capacidad de las redes neuronales convolucionales para extraer características relevantes de las imágenes de forma automática ha revolucionado el campo de la visión por computador aplicada a la medicina.
 
-El dataset Iris, introducido por Ronald Fisher en 1936, se ha convertido en un caso de estudio canónico en la literatura de aprendizaje automático debido a su simplicidad conceptual y su riqueza estructural. Con solo 150 instancias distribuidas en tres clases perfectamente equilibradas (especies de iris) descritas por cuatro atributos morfológicos continuos, el problema presenta características ideales para el análisis comparativo de algoritmos: es lo suficientemente simple para obtener resultados interpretables, pero lo suficientemente complejo para revelar diferencias significativas entre enfoques metodológicos distintos. La separabilidad lineal de una de las clases (Iris setosa) frente a la confusión parcial entre las otras dos (Iris versicolor e Iris virginica) permite evaluar cómo diferentes algoritmos manejan regiones del espacio de características con distintos niveles de complejidad.
+En este proyecto hemos trabajado con el conjunto de datos ISIC 2019 (International Skin Imaging Collaboration), que constituye uno de los recursos más completos y utilizados en la investigación sobre clasificación de lesiones cutáneas. Este dataset contiene miles de imágenes dermatoscópicas etiquetadas con ocho categorías diagnósticas diferentes que abarcan desde lesiones benignas como el nevus hasta lesiones malignas como el melanoma y el carcinoma de células escamosas.
 
-Este estudio persigue varios objetivos interrelacionados que van más allá de la mera comparación superficial de exactitudes. En primer lugar, se busca analizar en profundidad cómo cuatro familias fundamentales de algoritmos de clasificación (métodos basados en distancia, métodos de margen máximo, métodos ensemble de árboles, y métodos probabilísticos) abordan el mismo problema desde perspectivas teóricas diferentes, y cómo estas diferencias se manifiestan en el rendimiento medible. En segundo lugar, se pretende evaluar sistemáticamente el impacto de transformaciones comunes en el preprocesamiento de datos (normalización, estandarización y reducción dimensional mediante PCA) sobre el comportamiento de cada algoritmo, revelando así sus fortalezas y debilidades inherentes. En tercer lugar, se investiga si la combinación de predicciones mediante métodos de ensemble puede proporcionar mejoras significativas no solo en términos de rendimiento medio, sino especialmente en términos de estabilidad y robustez frente a diferentes particiones de los datos.
+Nuestro objetivo principal ha sido entrenar modelos de detección de objetos basados en la arquitectura YOLO (You Only Look Once) para clasificar imágenes de lesiones cutáneas. Hemos elegido YOLO por su eficiencia en tiempo real y su capacidad para procesar imágenes de forma rápida sin sacrificar significativamente la precisión. Aunque YOLO fue diseñado originalmente para detección de objetos, hemos adaptado su uso para el problema de clasificación de imágenes médicas, aprovechando su arquitectura de red neuronal convolucional profunda.
 
-La metodología empleada utiliza validación cruzada estratificada con cinco pliegues, garantizando que cada pliegue preserve la distribución de clases del conjunto original. Se han generado nueve variantes del dataset: datos originales, normalizados mediante escalado min-max, y estandarizados mediante normalización z-score, cada uno de ellos con tres versiones (sin reducción dimensional, con PCA reteniendo el 80\% de la varianza, y con PCA reteniendo el 95\% de la varianza). Esta configuración experimental proporciona 45 combinaciones distintas de datos para cada uno de los cinco pliegues, resultando en 225 evaluaciones independientes por algoritmo, lo que permite obtener conclusiones estadísticamente robustas sobre el rendimiento y la estabilidad de cada método.
+Hemos entrenado tres variantes del modelo YOLOv8, correspondientes a las versiones nano (n), small (s) y medium (m), con el propósito de analizar el compromiso entre complejidad del modelo, tiempo de entrenamiento y rendimiento final. Para cada modelo, hemos generado gráficas detalladas del proceso de entrenamiento que nos permiten estudiar el comportamiento de las funciones de pérdida y detectar posibles fenómenos de sobreajuste o subajuste. Finalmente, hemos evaluado el rendimiento de nuestros modelos en un conjunto de test independiente y comparado sus métricas de precisión, recall y mAP.
+
+\section{Conjunto de Datos y Preparación}
+
+El conjunto de datos ISIC 2019 constituye uno de los recursos más importantes para la investigación en clasificación de lesiones cutáneas mediante técnicas de aprendizaje automático. Este dataset proviene del challenge anual organizado por la International Skin Imaging Collaboration y contiene imágenes dermatoscópicas de alta resolución junto con sus correspondientes etiquetas diagnósticas validadas por expertos dermatólogos.
+
+Las ocho categorías diagnósticas presentes en nuestro conjunto de datos son MEL (Melanoma), NV (Nevus melanocítico), BCC (Carcinoma basocelular), AK (Queratosis actínica), BKL (Queratosis benigna), DF (Dermatofibroma), VASC (Lesiones vasculares) y SCC (Carcinoma de células escamosas). Esta diversidad de clases representa un desafío significativo para los sistemas de clasificación automática, ya que algunas de estas lesiones presentan características visuales muy similares entre sí.
+
+Para nuestro trabajo hemos descargado el conjunto de entrenamiento completo de ISIC 2019 junto con el archivo de etiquetas correspondiente. A partir de este conjunto, hemos generado dos subconjuntos balanceados que utilizamos para entrenar y evaluar nuestros modelos. El primer subconjunto, destinado al entrenamiento de nuestros modelos, contiene exactamente 100 imágenes de cada una de las ocho clases, lo que resulta en un total de 800 imágenes de entrenamiento. El segundo subconjunto, reservado para la evaluación final, contiene 10 imágenes por clase, sumando 80 imágenes de test.
+
+El proceso de preparación de los datos para YOLO requiere una estructura específica de carpetas y archivos de anotación. Hemos organizado las imágenes en directorios separados para entrenamiento y validación, y hemos generado archivos de anotación en formato YOLO que contienen las coordenadas del bounding box y la clase correspondiente para cada imagen. Dado que nuestras imágenes muestran la lesión cutánea como elemento central, hemos utilizado bounding boxes que cubren aproximadamente el 80\% del área de la imagen centrados en el punto medio.
+
+El archivo de configuración data.yaml contiene la ruta a nuestro conjunto de datos, el número de clases (8) y los nombres de las categorías diagnósticas. Este archivo es fundamental para que YOLO pueda interpretar correctamente la estructura de nuestros datos durante el entrenamiento y la evaluación.
+
+\section{Arquitectura YOLO y Modelos Utilizados}
+
+YOLO (You Only Look Once) representa una familia de arquitecturas de redes neuronales convolucionales diseñadas originalmente para la detección de objetos en tiempo real. A diferencia de otros detectores que procesan la imagen en múltiples etapas, YOLO analiza la imagen completa en una única pasada por la red, lo que le confiere una velocidad excepcional sin sacrificar significativamente la precisión. En nuestro trabajo hemos utilizado YOLOv8, la versión más reciente desarrollada por Ultralytics, que incorpora mejoras arquitectónicas importantes respecto a versiones anteriores.
+
+La arquitectura de YOLOv8 se compone de tres bloques principales. El backbone se encarga de extraer características de la imagen de entrada mediante una serie de capas convolucionales y bloques residuales. El neck combina las características extraídas en diferentes escalas para generar mapas de características multiescala que permiten detectar objetos de diferentes tamaños. Finalmente, la cabeza de detección (head) predice las coordenadas de los bounding boxes, las puntuaciones de confianza y las probabilidades de clase para cada región de la imagen.
+
+Para nuestro proyecto hemos entrenado tres variantes de YOLOv8 con diferentes niveles de complejidad. El modelo YOLOv8n (nano) constituye la versión más ligera con aproximadamente 3 millones de parámetros y 8.1 GFLOPs de carga computacional. Este modelo está optimizado para dispositivos con recursos limitados y ofrece tiempos de inferencia muy rápidos a costa de una precisión ligeramente menor. El modelo YOLOv8s (small) representa un compromiso intermedio con alrededor de 11 millones de parámetros y 28.5 GFLOPs, proporcionando mejor precisión que la versión nano manteniendo tiempos de inferencia razonables. El modelo YOLOv8m (medium) es la versión más grande que hemos utilizado, con aproximadamente 26 millones de parámetros y 78.7 GFLOPs, ofreciendo el mejor rendimiento a costa de mayor tiempo de entrenamiento e inferencia.
+
+Hemos utilizado modelos pre-entrenados en el conjunto de datos COCO como punto de partida para nuestro entrenamiento. Esta técnica de transfer learning nos permite aprovechar los patrones visuales genéricos aprendidos en un conjunto de datos grande y diverso, acelerando la convergencia y mejorando el rendimiento final en nuestra tarea específica de clasificación de lesiones cutáneas.
 
 \section{Entrenamiento de los Modelos}
 
-El módulo de entrenamiento implementa cuatro algoritmos de clasificación supervisada, cada uno con características y supuestos diferentes que los hacen adecuados para distintos tipos de problemas.
+El proceso de entrenamiento de nuestros modelos YOLO se ha llevado a cabo utilizando la biblioteca Ultralytics, que proporciona una interfaz de alto nivel para configurar y ejecutar el entrenamiento de redes YOLOv8. Hemos configurado el entrenamiento con 100 épocas como máximo, aunque el sistema de early stopping con paciencia de 25 épocas detiene el proceso si no se observan mejoras en el rendimiento de validación.
 
-\subsection{K-Nearest Neighbors}
+Para el entrenamiento hemos utilizado imágenes redimensionadas a 640x640 píxeles, un tamaño de batch de 16 y el optimizador AdamW con una tasa de aprendizaje inicial de 0.002. El entrenamiento incluye técnicas de data augmentation como rotaciones, cambios de escala, modificaciones de brillo y saturación, y volteo horizontal, que ayudan a mejorar la generalización de nuestros modelos evitando el sobreajuste.
 
-El algoritmo K-Nearest Neighbors se fundamenta en el principio de que muestras similares tienden a pertenecer a la misma clase. Para clasificar una nueva instancia, el algoritmo identifica las $k$ muestras más cercanas en el conjunto de entrenamiento según la distancia euclidiana y asigna la clase mayoritaria entre estos vecinos mediante votación.
+La Figura~\ref{fig:training_yolov8n} muestra las curvas de entrenamiento para el modelo YOLOv8n. Podemos observar cómo tanto la pérdida de localización (box loss) como la pérdida de clasificación (cls loss) disminuyen de forma consistente a lo largo del entrenamiento para ambos conjuntos, train y validación. La ausencia de una divergencia significativa entre las curvas de train y validación indica que nuestro modelo no sufre de sobreajuste severo. Las métricas de precision y recall muestran un comportamiento oscilante pero con tendencia general al alza, mientras que el mAP50 y mAP50-95 aumentan progresivamente hasta estabilizarse alrededor de 0.6.
 
-La selección del hiperparámetro $k$ es crítica para el rendimiento del algoritmo. Valores muy pequeños (como $k=1$) hacen que el clasificador sea sensible al ruido, ya que una única instancia atípica puede determinar la predicción. Valores excesivamente grandes diluyen la información local relevante, haciendo que instancias distantes influyan en decisiones donde no deberían tener peso. La implementación realizada emplea un método de búsqueda exhaustiva (grid search) para optimizar $k$, evaluando sistemáticamente todos los valores impares en el rango $k \in \{1, 3, 5, \ldots, \lfloor\sqrt{N}\rfloor\}$, donde $N$ es el número de muestras en el conjunto de entrenamiento. La restricción a valores impares se fundamenta en la necesidad de evitar empates en la votación mayoritaria para problemas multiclase. El límite superior de $\lfloor\sqrt{N}\rfloor$ se basa en la heurística de que valores superiores raramente proporcionan mejoras significativas y pueden introducir sesgo excesivo.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/metrics_yolov8n.png}
+\caption{Métricas de entrenamiento del modelo YOLOv8n. Se observa una disminución consistente de las funciones de pérdida y un incremento gradual de las métricas de evaluación a lo largo de las épocas de entrenamiento.}
+\label{fig:training_yolov8n}
+\end{figure}
 
-Para cada valor candidato de $k$, se entrena un modelo KNN completo, se evalúa su exactitud en el conjunto de test del pliegue correspondiente, y se retiene el modelo con mayor exactitud. Este proceso de selección se repite independientemente para cada pliegue de validación cruzada y cada configuración de datos, permitiendo que el valor óptimo de $k$ se adapte a las características específicas de cada conjunto de entrenamiento. En la práctica, los valores óptimos encontrados oscilan típicamente entre $k=3$ y $k=5$ dependiendo de la transformación aplicada a los datos.
+La Figura~\ref{fig:training_yolov8s} presenta las métricas correspondientes al modelo YOLOv8s. Este modelo muestra un comportamiento similar al modelo nano, con una convergencia ligeramente más rápida en las primeras épocas. La pérdida de clasificación desciende de forma más pronunciada, lo que sugiere que la mayor capacidad del modelo le permite aprender patrones más discriminativos entre las diferentes clases de lesiones cutáneas. El modelo YOLOv8s completa aproximadamente 85 épocas antes de que el early stopping detenga el entrenamiento.
 
-\subsection{Support Vector Machine}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/metrics_yolov8s.png}
+\caption{Métricas de entrenamiento del modelo YOLOv8s. El modelo presenta una convergencia similar al YOLOv8n pero con valores finales de mAP ligeramente superiores.}
+\label{fig:training_yolov8s}
+\end{figure}
 
-Las Máquinas de Vectores de Soporte buscan el hiperplano óptimo que maximiza el margen de separación entre las clases. En el problema multiclase del dataset Iris, donde existen tres especies, el algoritmo emplea una estrategia de uno contra uno, construyendo clasificadores binarios para cada par de clases. La implementación utiliza un kernel de función de base radial que captura fronteras de decisión no lineales, habilitando además la estimación de probabilidades necesaria para los métodos de ensemble.
+La Figura~\ref{fig:training_yolov8m} ilustra el proceso de entrenamiento del modelo YOLOv8m. Observamos que este modelo, al tener mayor capacidad, presenta picos más pronunciados en la pérdida de validación durante las primeras épocas, especialmente en el box loss y classification loss. Sin embargo, conforme avanza el entrenamiento, las curvas se estabilizan y el modelo alcanza los mejores valores de mAP entre los tres modelos evaluados. El entrenamiento completo del modelo medium consume significativamente más tiempo debido a su mayor número de parámetros.
 
-\subsection{Random Forest}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/metrics_yolov8m.png}
+\caption{Métricas de entrenamiento del modelo YOLOv8m. A pesar de mostrar mayor variabilidad inicial, este modelo alcanza los mejores valores finales de mAP.}
+\label{fig:training_yolov8m}
+\end{figure}
 
-Random Forest combina múltiples árboles de decisión entrenados sobre subconjuntos aleatorios de los datos y las características. Cada árbol proporciona una predicción y la clase final se determina mediante votación mayoritaria. Esta estrategia reduce la varianza del modelo y lo hace más robusto frente al sobreajuste. La implementación utiliza árboles con selección aleatoria de la raíz cuadrada del número de características en cada división.
+La Figura~\ref{fig:comparison_models} presenta una comparación directa entre los tres modelos en términos de pérdida de validación y mAP50. Podemos apreciar que los tres modelos convergen hacia valores similares de box loss al final del entrenamiento, aunque el modelo YOLOv8m presenta mayor inestabilidad inicial. En cuanto al mAP50, observamos que los tres modelos siguen trayectorias similares con una tendencia creciente, siendo el modelo YOLOv8m el que alcanza consistentemente los valores más altos a partir de la época 60 aproximadamente.
 
-\subsection{Naive Bayes}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/comparation_models.png}
+\caption{Comparación entre los tres modelos YOLO durante el entrenamiento. Se muestra la evolución de la pérdida de validación y el mAP50 a lo largo de las épocas.}
+\label{fig:comparison_models}
+\end{figure}
 
-El clasificador Naive Bayes aplica el teorema de Bayes asumiendo independencia condicional entre las características. Aunque esta suposición raramente se cumple en la práctica, el algoritmo demuestra efectividad en numerosos problemas de clasificación. La variante gaussiana utilizada asume distribuciones normales para los valores de cada característica dentro de cada clase, proporcionando estimaciones de probabilidad bien calibradas que resultan útiles para la combinación mediante técnicas de ensemble.
+\section{Evaluación y Resultados}
 
-\section{Evaluación de los Modelos}
+Una vez completado el entrenamiento de nuestros tres modelos, procedimos a evaluar su rendimiento en el conjunto de test que habíamos reservado previamente. Para cada modelo hemos calculado diversas métricas que nos permiten caracterizar su comportamiento desde diferentes perspectivas.
 
-El módulo de evaluación implementa un conjunto completo de métricas que permiten caracterizar el rendimiento de los modelos desde múltiples perspectivas, aspecto especialmente importante en problemas de clasificación multiclase.
-
-La exactitud representa la proporción de predicciones correctas sobre el total de muestras. En el dataset Iris, donde las clases están perfectamente equilibradas, esta métrica proporciona una medida fiable del rendimiento global. La precisión cuantifica la proporción de predicciones positivas correctamente clasificadas, mientras que el recall mide la proporción de instancias positivas identificadas correctamente. El F1-score combina armónicamente ambas métricas, penalizando los desequilibrios entre precisión y recall.
-
-Las curvas ROC representan gráficamente la relación entre la tasa de verdaderos positivos y la tasa de falsos positivos para diferentes umbrales de clasificación. El área bajo esta curva (AUC) proporciona una medida agregada del rendimiento independiente del umbral seleccionado. La implementación genera curvas ROC multiclase utilizando la estrategia uno contra resto, con el área macro-promediada como medida global.
-
-\section{Análisis de Resultados}
-
-\subsection{Rendimiento de los Modelos Individuales}
-
-La Tabla~\ref{tab:f1_comparison} presenta la comparativa de F1-score para los cuatro métodos de clasificación en todas las configuraciones de datos evaluadas. Los resultados revelan patrones significativos sobre el comportamiento de cada algoritmo ante diferentes transformaciones de los datos.
+La Tabla~\ref{tab:model_results} resume las principales métricas de rendimiento obtenidas por cada modelo. El mAP50 (mean Average Precision con umbral IoU de 0.50) mide la precisión promedio de las detecciones cuando se considera que una predicción es correcta si el solapamiento entre el bounding box predicho y el real supera el 50\%. El mAP50-95 es una métrica más estricta que promedia el mAP calculado con umbrales IoU desde 0.50 hasta 0.95 en incrementos de 0.05. La Precision indica la proporción de detecciones positivas que son realmente correctas, mientras que el Recall mide la proporción de objetos reales que el modelo logra detectar. Finalmente, la Accuracy representa el porcentaje de clasificaciones correctas cuando asignamos a cada imagen la clase predicha por el modelo.
 
 \begin{table}[H]
-\caption{Comparativa de F1-score por método y configuración de datos. Los valores representan media $\pm$ desviación estándar sobre los cinco pliegues de validación cruzada.}
-\label{tab:f1_comparison}
+\caption{Comparativa de métricas de rendimiento para los tres modelos YOLO entrenados.}
+\label{tab:model_results}
 \centering
-\begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{lcccc}
-\toprule
-Configuración & KNN & SVM & RF & NB \\
-\midrule
-original & 0.9799 $\pm$ 0.0183 & 0.9666 $\pm$ 0.0236 & 0.9665 $\pm$ 0.0238 & 0.9530 $\pm$ 0.0300 \\
-original\_PCA80 & 0.9265 $\pm$ 0.0548 & 0.9129 $\pm$ 0.0506 & 0.8863 $\pm$ 0.0606 & 0.9330 $\pm$ 0.0532 \\
-original\_PCA95 & 0.9798 $\pm$ 0.0301 & 0.9467 $\pm$ 0.0558 & 0.9327 $\pm$ 0.0244 & 0.8996 $\pm$ 0.0471 \\
-norm & 0.9599 $\pm$ 0.0366 & 0.9598 $\pm$ 0.0436 & 0.9598 $\pm$ 0.0280 & 0.9530 $\pm$ 0.0300 \\
-norm\_PCA80 & 0.9461 $\pm$ 0.0388 & 0.9462 $\pm$ 0.0307 & 0.9198 $\pm$ 0.0380 & 0.9464 $\pm$ 0.0185 \\
-norm\_PCA95 & 0.9598 $\pm$ 0.0280 & 0.9598 $\pm$ 0.0280 & 0.9530 $\pm$ 0.0300 & 0.9125 $\pm$ 0.0452 \\
-std & 0.9666 $\pm$ 0.0236 & 0.9666 $\pm$ 0.0236 & 0.9598 $\pm$ 0.0280 & 0.9530 $\pm$ 0.0300 \\
-std\_PCA80 & 0.9326 $\pm$ 0.0535 & 0.9127 $\pm$ 0.0511 & 0.9128 $\pm$ 0.0653 & 0.8925 $\pm$ 0.0366 \\
-std\_PCA95 & 0.9326 $\pm$ 0.0535 & 0.9127 $\pm$ 0.0511 & 0.9128 $\pm$ 0.0653 & 0.8925 $\pm$ 0.0366 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
-El análisis de la Tabla~\ref{tab:f1_comparison} revela jerarquías de rendimiento que varían según la configuración de datos, reflejando las diferentes sensibilidades de cada algoritmo a las transformaciones aplicadas. En los datos originales, K-Nearest Neighbors establece el estándar de rendimiento con un F1-score de 0.9799 $\pm$ 0.0183, superando a SVM (0.9666 $\pm$ 0.0236), Random Forest (0.9665 $\pm$ 0.0238) y Naive Bayes (0.9530 $\pm$ 0.0300). Sin embargo, esta aparente superioridad debe interpretarse con cautela, ya que las diferencias absolutas son pequeñas y las desviaciones estándar se solapan considerablemente.
-
-La reducción dimensional mediante PCA introduce perturbaciones significativas en este orden de preferencia. Cuando se retiene el 95\% de la varianza explicada, KNN mantiene prácticamente intacto su rendimiento (0.9798 $\pm$ 0.0301), lo que sugiere que el 5\% de varianza eliminada corresponde principalmente a ruido o información redundante que no aporta capacidad discriminativa. En contraste, SVM experimenta una degradación más pronunciada (0.9467 $\pm$ 0.0558), lo que puede atribuirse a la alteración de las distancias relativas en el espacio transformado que afecta a la construcción del hiperplano óptimo. Random Forest sufre también una pérdida notable (0.9327 $\pm$ 0.0244), mientras que, sorprendentemente, Naive Bayes muestra la degradación más severa (0.8996 $\pm$ 0.0471) con PCA al 95\%.
-
-El patrón se invierte dramáticamente cuando la reducción dimensional es más agresiva (PCA al 80\%). En esta configuración, Random Forest experimenta el colapso más pronunciado (0.8863 $\pm$ 0.0606), perdiendo más de 8 puntos porcentuales respecto a su rendimiento en datos originales. Este comportamiento refleja la dependencia fundamental del algoritmo en umbrales sobre características individuales. Los árboles de decisión que componen el bosque aprenden a dividir el espacio de características mediante reglas del tipo "si $x_i < \theta$ entonces...". Cuando PCA proyecta los datos a un subespacio de dimensionalidad reducida, las combinaciones lineales resultantes ya no corresponden a las características originales, y los umbrales óptimos pierden su significado semántico y su capacidad discriminativa.
-
-Paradójicamente, Naive Bayes emerge como el método más robusto en la configuración original\_PCA80 (0.9330 $\pm$ 0.0532), superando incluso a KNN (0.9265 $\pm$ 0.0548) y SVM (0.9129 $\pm$ 0.0506). Esta reversión contraintuitiva de la jerarquía de rendimiento encuentra su explicación en los fundamentos matemáticos del algoritmo. Naive Bayes asume independencia condicional entre las características dada la clase, es decir, $P(x_1, x_2, \ldots, x_n | y) = \prod_{i=1}^{n} P(x_i | y)$. En el espacio original del dataset Iris, esta suposición es claramente violada: la longitud y anchura de los pétalos están fuertemente correlacionadas, al igual que las dimensiones de los sépalos. PCA, por construcción, genera componentes principales ortogonales que maximizan la varianza capturada. Esta ortogonalidad implica que las nuevas características están decorrelacionadas, aproximándose mejor a la suposición de independencia de Naive Bayes. Cuando la reducción es agresiva (80\% de varianza), se eliminan las componentes que capturan correlaciones residuales más complejas, dejando las componentes principales que son, por diseño, independientes entre sí.
-
-La normalización y estandarización de los datos introducen efectos más sutiles pero igualmente reveladores. En datos normalizados, los cuatro métodos convergen hacia rendimientos prácticamente idénticos (alrededor de 0.96), con SVM, RF y KNN alcanzando exactamente 0.9598 $\pm$ 0.0280. Esta convergencia sugiere que el escalado uniforme de las características a un rango común elimina sesgos relacionados con diferencias de escala que podrían favorecer a ciertos algoritmos. Los datos estandarizados (std) producen resultados muy similares a los normalizados, confirmando que para este problema particular, la forma específica de escalado es menos relevante que el hecho de aplicar algún tipo de escalado.
-
-Un aspecto frecuentemente subestimado pero crucial es la variabilidad del rendimiento a través de los pliegues de validación cruzada, cuantificada por las desviaciones estándar. KNN en datos originales no solo alcanza el mejor rendimiento medio, sino que también exhibe la menor variabilidad (0.0183), indicando predicciones consistentes independientemente de la partición específica de datos de entrenamiento y test. En contraste, Random Forest con PCA al 80\% muestra una desviación estándar de 0.0606, más de tres veces superior, sugiriendo que el modelo es sensible a las características específicas de cada pliegue y que su rendimiento podría fluctuar significativamente en aplicaciones reales con diferentes muestras de datos.
-
-\subsection{Análisis Detallado por Método}
-
-Las Tablas~\ref{tab:KNN_summary}, \ref{tab:SVM_summary}, \ref{tab:RF_summary} y \ref{tab:NB_summary} presentan el espectro completo de métricas de evaluación para cada método, permitiendo un análisis multidimensional que va más allá del F1-score agregado.
-
-\begin{table}[H]
-\caption{Métricas detalladas del método KNN. Valores expresados como media $\pm$ desviación estándar.}
-\label{tab:KNN_summary}
-\centering
-\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lccccc}
 \toprule
-Configuración & Exactitud & Precisión & Recall & F1-score & AUC \\
+Modelo & mAP50 & mAP50-95 & Precision & Recall & Accuracy \\
 \midrule
-original & 0.9800 $\pm$ 0.0183 & 0.9818 $\pm$ 0.0166 & 0.9800 $\pm$ 0.0183 & 0.9799 $\pm$ 0.0183 & 0.9887 $\pm$ 0.0141 \\
-original\_PCA80 & 0.9267 $\pm$ 0.0548 & 0.9282 $\pm$ 0.0548 & 0.9267 $\pm$ 0.0548 & 0.9265 $\pm$ 0.0548 & 0.9653 $\pm$ 0.0380 \\
-original\_PCA95 & 0.9800 $\pm$ 0.0298 & 0.9828 $\pm$ 0.0252 & 0.9800 $\pm$ 0.0298 & 0.9798 $\pm$ 0.0301 & 0.9943 $\pm$ 0.0109 \\
-norm & 0.9600 $\pm$ 0.0365 & 0.9623 $\pm$ 0.0360 & 0.9600 $\pm$ 0.0365 & 0.9599 $\pm$ 0.0366 & 0.9750 $\pm$ 0.0306 \\
-std & 0.9667 $\pm$ 0.0236 & 0.9685 $\pm$ 0.0236 & 0.9667 $\pm$ 0.0236 & 0.9666 $\pm$ 0.0236 & 0.9920 $\pm$ 0.0106 \\
+YOLOv8n & 0.608 & 0.594 & 0.509 & 0.652 & 0.507 \\
+YOLOv8s & 0.650 & 0.636 & 0.550 & 0.634 & 0.633 \\
+YOLOv8m & 0.664 & 0.661 & 0.563 & 0.647 & 0.582 \\
 \bottomrule
 \end{tabular}
-\end{adjustbox}
 \end{table}
 
-K-Nearest Neighbors exhibe una propiedad notable: la convergencia casi perfecta entre exactitud, precisión y recall. En datos originales, los tres valores difieren en menos de 0.002, lo que indica que el clasificador no presenta sesgo sistemático hacia ninguna clase específica. Esta simetría se mantiene incluso en configuraciones con reducción dimensional, sugiriendo que el principio de votación mayoritaria entre vecinos proporciona calibración natural de las predicciones. El AUC particularmente alto en la configuración original\_PCA95 (0.9943 $\pm$ 0.0109) supera incluso al de los datos originales sin reducción (0.9887 $\pm$ 0.0141), confirmando la hipótesis de que la eliminación del 5\% de varianza corresponde a ruido que distorsiona las distancias entre instancias sin aportar información discriminativa útil.
+Analizando los resultados de la Tabla~\ref{tab:model_results}, observamos que el modelo YOLOv8m obtiene los mejores valores en mAP50 (0.664), mAP50-95 (0.661) y Precision (0.563). Estos resultados confirman nuestra hipótesis de que los modelos más grandes, con mayor capacidad de representación, logran capturar patrones más sutiles en las imágenes de lesiones cutáneas. Sin embargo, resulta interesante notar que el modelo YOLOv8n alcanza el mejor Recall (0.652), lo que indica que el modelo más pequeño tiene una mayor tendencia a detectar lesiones, aunque con menor precisión. Por otro lado, el modelo YOLOv8s obtiene la mejor Accuracy en clasificación (0.633), sugiriendo que representa un buen equilibrio entre la capacidad de detección y la precisión en la asignación de clases.
 
-\begin{table}[H]
-\caption{Métricas detalladas del método SVM. Valores expresados como media $\pm$ desviación estándar.}
-\label{tab:SVM_summary}
-\centering
-\begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{lccccc}
-\toprule
-Configuración & Exactitud & Precisión & Recall & F1-score & AUC \\
-\midrule
-original & 0.9667 $\pm$ 0.0236 & 0.9685 $\pm$ 0.0236 & 0.9667 $\pm$ 0.0236 & 0.9666 $\pm$ 0.0236 & 0.9967 $\pm$ 0.0033 \\
-original\_PCA80 & 0.9133 $\pm$ 0.0506 & 0.9192 $\pm$ 0.0529 & 0.9133 $\pm$ 0.0506 & 0.9129 $\pm$ 0.0506 & 0.9863 $\pm$ 0.0160 \\
-original\_PCA95 & 0.9467 $\pm$ 0.0558 & 0.9467 $\pm$ 0.0558 & 0.9467 $\pm$ 0.0558 & 0.9467 $\pm$ 0.0558 & 0.9947 $\pm$ 0.0056 \\
-norm & 0.9600 $\pm$ 0.0435 & 0.9633 $\pm$ 0.0412 & 0.9600 $\pm$ 0.0435 & 0.9598 $\pm$ 0.0436 & 0.9987 $\pm$ 0.0030 \\
-std & 0.9667 $\pm$ 0.0236 & 0.9685 $\pm$ 0.0236 & 0.9667 $\pm$ 0.0236 & 0.9666 $\pm$ 0.0236 & 0.9987 $\pm$ 0.0030 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
+La mejora de YOLOv8n a YOLOv8s representa un incremento del 7\% aproximadamente en mAP50 y mAP50-95, mientras que la mejora adicional de YOLOv8s a YOLOv8m es más modesta, cercana al 2\%. Este patrón de rendimientos marginales decrecientes es consistente con lo observado en otros dominios de aplicación de YOLO y sugiere que, para conjuntos de datos de tamaño limitado como el nuestro, los modelos más grandes no necesariamente proporcionan mejoras proporcionales a su incremento en complejidad.
 
-Support Vector Machine destaca por alcanzar los valores de AUC más elevados entre todos los métodos evaluados. El valor de 0.9987 $\pm$ 0.0030 en datos normalizados y estandarizados representa la capacidad discriminativa más alta observada en todo el experimento. Este resultado excepcional refleja la eficacia del kernel RBF para proyectar los datos a un espacio de características de alta dimensionalidad donde las clases se vuelven casi perfectamente separables mediante un hiperplano. Sin embargo, esta superioridad en términos de AUC no se traduce directamente en mejoras proporcionales en las predicciones discretas, ya que el F1-score de SVM (0.9666) es ligeramente inferior al de KNN (0.9799) en datos originales. Esta divergencia ilustra una distinción fundamental entre dos aspectos del rendimiento de clasificadores: la capacidad de ordenar correctamente las instancias según su probabilidad de pertenencia a cada clase (medida por el AUC) versus la capacidad de asignar correctamente la etiqueta de clase cuando se aplica un umbral de decisión fijo (medida por exactitud, precisión, recall y F1-score).
-
-\begin{table}[H]
-\caption{Métricas detalladas del método Random Forest. Valores expresados como media $\pm$ desviación estándar.}
-\label{tab:RF_summary}
-\centering
-\begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{lccccc}
-\toprule
-Configuración & Exactitud & Precisión & Recall & F1-score & AUC \\
-\midrule
-original & 0.9667 $\pm$ 0.0236 & 0.9707 $\pm$ 0.0197 & 0.9667 $\pm$ 0.0236 & 0.9665 $\pm$ 0.0238 & 0.9920 $\pm$ 0.0112 \\
-original\_PCA80 & 0.8867 $\pm$ 0.0606 & 0.8899 $\pm$ 0.0612 & 0.8867 $\pm$ 0.0606 & 0.8863 $\pm$ 0.0606 & 0.9810 $\pm$ 0.0161 \\
-original\_PCA95 & 0.9333 $\pm$ 0.0236 & 0.9408 $\pm$ 0.0178 & 0.9333 $\pm$ 0.0236 & 0.9327 $\pm$ 0.0244 & 0.9908 $\pm$ 0.0068 \\
-norm & 0.9600 $\pm$ 0.0279 & 0.9634 $\pm$ 0.0259 & 0.9600 $\pm$ 0.0279 & 0.9598 $\pm$ 0.0280 & 0.9893 $\pm$ 0.0169 \\
-std & 0.9600 $\pm$ 0.0279 & 0.9634 $\pm$ 0.0259 & 0.9600 $\pm$ 0.0279 & 0.9598 $\pm$ 0.0280 & 0.9937 $\pm$ 0.0084 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
-Random Forest presenta el comportamiento más heterogéneo entre las diferentes configuraciones de datos. La pérdida dramática de rendimiento con PCA al 80\% (F1-score de 0.8863 $\pm$ 0.0606, una reducción de más del 8\% respecto a los datos originales) contrasta con su robustez relativa en datos normalizados y estandarizados, donde mantiene rendimientos comparables a los otros métodos. La desviación estándar particularmente elevada en la configuración original\_PCA80 (0.0606 para el F1-score) indica no solo un rendimiento medio degradado, sino también alta variabilidad entre pliegues. Esta inestabilidad sugiere que el algoritmo es altamente sensible a la selección específica de instancias de entrenamiento cuando opera en un espacio de características reducido. Curiosamente, el AUC se mantiene relativamente alto incluso en esta configuración problemática (0.9810), lo que indica que, aunque el modelo comete más errores de clasificación, conserva cierta capacidad para ordenar correctamente las instancias según su probabilidad de clase.
-
-\begin{table}[H]
-\caption{Métricas detalladas del método Naive Bayes. Valores expresados como media $\pm$ desviación estándar.}
-\label{tab:NB_summary}
-\centering
-\begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{lccccc}
-\toprule
-Configuración & Exactitud & Precisión & Recall & F1-score & AUC \\
-\midrule
-original & 0.9533 $\pm$ 0.0298 & 0.9584 $\pm$ 0.0268 & 0.9533 $\pm$ 0.0298 & 0.9530 $\pm$ 0.0300 & 0.9933 $\pm$ 0.0078 \\
-original\_PCA80 & 0.9333 $\pm$ 0.0527 & 0.9361 $\pm$ 0.0502 & 0.9333 $\pm$ 0.0527 & 0.9330 $\pm$ 0.0532 & 0.9867 $\pm$ 0.0156 \\
-original\_PCA95 & 0.9000 $\pm$ 0.0471 & 0.9048 $\pm$ 0.0507 & 0.9000 $\pm$ 0.0471 & 0.8996 $\pm$ 0.0471 & 0.9827 $\pm$ 0.0179 \\
-norm & 0.9533 $\pm$ 0.0298 & 0.9584 $\pm$ 0.0268 & 0.9533 $\pm$ 0.0298 & 0.9530 $\pm$ 0.0300 & 0.9933 $\pm$ 0.0078 \\
-std & 0.9533 $\pm$ 0.0298 & 0.9584 $\pm$ 0.0268 & 0.9533 $\pm$ 0.0298 & 0.9530 $\pm$ 0.0300 & 0.9933 $\pm$ 0.0078 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
-Naive Bayes exhibe el patrón más inusual entre los cuatro métodos evaluados. Mientras que todos los demás algoritmos sufren su mayor degradación con PCA al 80\%, Naive Bayes mantiene un rendimiento relativamente competitivo en esta configuración (F1-score de 0.9330), superando a Random Forest en más de 4 puntos porcentuales. Paradójicamente, el rendimiento se degrada más severamente con PCA al 95\% (F1-score de 0.8996), que teóricamente retiene más información que PCA al 80\%. Este comportamiento contraintuitivo se explica por la interacción entre la suposición de independencia del algoritmo y la estructura de correlación en los datos transformados. Con PCA al 80\%, las dos primeras componentes principales capturan las direcciones de máxima varianza de forma prácticamente ortogonal, aproximándose mejor a la suposición de independencia. Con PCA al 95\%, se retienen tres o cuatro componentes que, aunque individualmente menos correlacionadas que las características originales, pueden presentar interacciones no lineales que Naive Bayes no puede modelar adecuadamente debido a su suposición simplificadora.
-
-\subsection{Visualización Comparativa de Métricas}
-
-La Figura~\ref{fig:metric_comparisons} presenta una visualización multidimensional del rendimiento de todos los métodos evaluados, permitiendo identificar patrones y relaciones entre diferentes métricas de forma intuitiva.
+La Figura~\ref{fig:confusion_matrices} muestra las matrices de confusión para cada uno de nuestros tres modelos. Estas matrices nos permiten visualizar qué tipos de errores comete cada modelo y cuáles son las clases más difíciles de clasificar correctamente.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{metric_comparisons.png}
-\caption{Comparación de métricas entre los cuatro métodos de clasificación. Los gráficos de dispersión muestran las relaciones entre tasa de falsos negativos y falsos positivos (izquierda), precisión y recall (centro), y exactitud y F1-score (derecha). El tamaño de los puntos representa el número de observaciones en cada configuración.}
-\label{fig:metric_comparisons}
+\includegraphics[width=\textwidth]{images/confusion_matrices.png}
+\caption{Matrices de confusión para los tres modelos YOLO. Cada celda muestra el número de imágenes de la clase real (eje Y) que fueron clasificadas como la clase predicha (eje X).}
+\label{fig:confusion_matrices}
 \end{figure}
 
-El análisis de la Figura~\ref{fig:metric_comparisons} revela varios patrones significativos. En la primera columna, los gráficos de tasa de falsos negativos frente a falsos positivos muestran que la mayoría de configuraciones se concentran en el origen, indicando bajo error en ambas dimensiones. Las configuraciones con reducción dimensional extrema (PCA al 80\%) aparecen como puntos más alejados del origen, confirmando cuantitativamente la degradación observada en las tablas.
+El análisis de las matrices de confusión revela varios patrones interesantes sobre el comportamiento de nuestros modelos. En primer lugar, observamos que las clases VASC (lesiones vasculares) y DF (dermatofibroma) son las que presentan mayor facilidad de clasificación, con la mayoría de los modelos alcanzando valores elevados en la diagonal principal para estas categorías. Esto puede explicarse por las características visuales distintivas de estas lesiones, que las hacen más fácilmente distinguibles del resto.
 
-La relación entre precisión y recall (columna central) presenta una correlación positiva muy fuerte, con la mayoría de puntos distribuidos cerca de la diagonal que une (0.85, 0.85) con (1.0, 1.0). Este patrón indica que los modelos que logran alta precisión también identifican correctamente la mayoría de instancias de cada clase, sin comprometer una métrica a favor de la otra.
+Por otro lado, las clases que presentan mayor confusión son MEL (melanoma), NV (nevus) y BCC (carcinoma basocelular). Estos tres tipos de lesiones comparten ciertas características morfológicas que dificultan su discriminación, lo cual representa un desafío clínico real en el diagnóstico dermatológico. Es particularmente preocupante la confusión entre melanoma y nevus, ya que el primero es una lesión maligna potencialmente mortal mientras que el segundo es benigno. Nuestros modelos muestran cierta tendencia a confundir estas categorías, lo que indica la necesidad de incorporar más datos de entrenamiento o técnicas adicionales de mejora en futuras iteraciones del sistema.
 
-La tercera columna confirma la consistencia entre exactitud y F1-score, con puntos distribuidos a lo largo de la diagonal principal. Los puntos más grandes representan configuraciones con mayor estabilidad entre pliegues, observándose que KNN (azul) y SVM (rojo) tienden a ocupar las posiciones más favorables en el espacio métrico.
+La comparación entre las tres matrices revela que el modelo YOLOv8s presenta la diagonal principal más marcada, lo que explica su mayor Accuracy global. El modelo YOLOv8m, aunque obtiene mejor mAP, distribuye sus errores de forma más uniforme entre las diferentes clases. El modelo YOLOv8n muestra mayor dispersión en sus predicciones, con valores más bajos en la diagonal para la mayoría de las clases.
 
-\subsection{Curvas ROC de los Modelos}
+\section{Análisis del Comportamiento durante el Entrenamiento}
 
-Las Figuras~\ref{fig:roc_knn} a~\ref{fig:roc_nb} presentan las curvas ROC para cada uno de los cuatro métodos de clasificación en la primera iteración de validación cruzada sobre los datos originales. Estas curvas proporcionan una representación visual de la capacidad discriminativa de cada modelo.
+El análisis de las curvas de entrenamiento nos permite evaluar si nuestros modelos presentan fenómenos de sobreajuste (overfitting) o subajuste (underfitting), aspectos fundamentales para determinar si el proceso de entrenamiento ha sido adecuado y si los modelos generalizarán correctamente a datos no vistos.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.7\textwidth]{KNN_original_1.png}
-\caption{Curva ROC del clasificador KNN en datos originales (fold 1). El modelo alcanza un AUC macro de 0.9750, con rendimiento perfecto en la Clase 0 (Iris setosa) y valores superiores a 0.95 para las clases 1 y 2.}
-\label{fig:roc_knn}
-\end{figure}
+En el caso del sobreajuste, observaríamos que las métricas en el conjunto de entrenamiento continúan mejorando mientras que las métricas en el conjunto de validación se estancan o incluso empeoran. Este fenómeno indica que el modelo está memorizando los datos de entrenamiento en lugar de aprender patrones generalizables. En nuestros experimentos, las gráficas de las funciones de pérdida muestran que tanto la pérdida de entrenamiento como la de validación disminuyen de forma consistente y paralela a lo largo de las épocas, sin evidencia clara de divergencia. Esto sugiere que nuestros modelos no sufren de sobreajuste significativo.
 
-La curva ROC de KNN (Figura~\ref{fig:roc_knn}) muestra un comportamiento característico de clasificadores de alto rendimiento, con las tres curvas de clase muy próximas al vértice superior izquierdo. La Clase 0 (Iris setosa) alcanza un AUC perfecto de 1.0, lo cual es consistente con el hecho de que esta especie es linealmente separable del resto en el espacio de características original. Las Clases 1 y 2 (Iris versicolor e Iris virginica) presentan AUC de 0.9750, reflejando la mayor dificultad de discriminación entre estas dos especies que comparten características morfológicas similares.
+El subajuste, por otro lado, se manifestaría si tanto las métricas de entrenamiento como las de validación mostraran valores pobres y sin tendencia clara de mejora. En nuestro caso, observamos una mejora constante en las métricas de mAP a lo largo del entrenamiento, lo que indica que nuestros modelos están aprendiendo efectivamente de los datos. Sin embargo, los valores finales de mAP alrededor de 0.60-0.66 sugieren que existe margen de mejora, posiblemente aumentando el tamaño del conjunto de entrenamiento o utilizando técnicas de data augmentation más agresivas.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.7\textwidth]{SVM_original_1.png}
-\caption{Curva ROC del clasificador SVM en datos originales (fold 1). El AUC macro de 0.9933 representa un alto rendimiento, evidenciando la capacidad del kernel RBF para capturar fronteras de decisión complejas.}
-\label{fig:roc_svm}
-\end{figure}
+Un aspecto notable en nuestras curvas de entrenamiento es la alta variabilidad de las métricas de Precision y Recall a lo largo de las épocas. Esta oscilación se debe en parte al pequeño tamaño de nuestro conjunto de validación (80 imágenes) y a la naturaleza del problema de clasificación multiclase con ocho categorías. Con conjuntos de datos más grandes, esperaríamos curvas más suaves y estables.
 
-El clasificador SVM (Figura~\ref{fig:roc_svm}) obtiene un AUC macro de 0.9933 en el primer pliegue. Este resultado se debe a la capacidad del kernel de función de base radial para proyectar los datos a un espacio de características de alta dimensionalidad donde las clases se vuelven linealmente separables.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.7\textwidth]{RF_original_1.png}
-\caption{Curva ROC del clasificador Random Forest en datos originales (fold 1). El AUC macro de 0.9967 refleja la robustez del método ensemble basado en árboles, alcanzando el mayor AUC entre los modelos individuales en este pliegue.}
-\label{fig:roc_rf}
-\end{figure}
-
-Random Forest (Figura~\ref{fig:roc_rf}) presenta un AUC macro de 0.9967, el más alto entre los modelos individuales en este pliegue específico. Este resultado refleja la capacidad del método ensemble basado en árboles para capturar fronteras de decisión complejas mediante la agregación de múltiples árboles de decisión.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.7\textwidth]{NB_original_1.png}
-\caption{Curva ROC del clasificador Naive Bayes en datos originales (fold 1). A pesar de la suposición simplificadora de independencia entre características, el método alcanza un AUC macro de 0.9833, demostrando su efectividad en este dominio.}
-\label{fig:roc_nb}
-\end{figure}
-
-Naive Bayes (Figura~\ref{fig:roc_nb}) alcanza un AUC macro de 0.9833, resultado notable considerando la suposición simplificadora de independencia condicional entre características que difícilmente se cumple en datos biométricos reales. Las curvas muestran formas escalonadas características de clasificadores que operan con estimaciones de probabilidad discretizadas, pero el rendimiento global es comparable a métodos más complejos.
-
-\section{Métodos de Ensemble}
-
-Los métodos de ensemble constituyen una de las estrategias más efectivas para mejorar el rendimiento y la robustez de los sistemas de aprendizaje automático. La intuición fundamental detrás de estos métodos se basa en el principio de que diferentes algoritmos, entrenados con los mismos datos, aprenden representaciones distintas del problema subyacente. Cada algoritmo introduce sesgos inductivos específicos: KNN asume que instancias similares pertenecen a la misma clase y define similaridad mediante distancia euclidiana; SVM busca el hiperplano de máximo margen en un espacio transformado mediante kernel; Random Forest construye múltiples árboles independientes sobre submuestras aleatorias de datos y características; Naive Bayes modela probabilidades condicionales asumiendo independencia entre características. Estas perspectivas complementarias capturan diferentes aspectos de los patrones presentes en los datos, y su combinación puede potencialmente reducir tanto el sesgo (mejorando la aproximación a la función objetivo verdadera) como la varianza (reduciendo la sensibilidad a fluctuaciones en el conjunto de entrenamiento).
-
-Se implementaron tres estrategias de combinación, cada una con propiedades teóricas distintas. El ensemble por votación asigna a cada instancia la clase que recibe más votos de los cuatro clasificadores base. Formalmente, dada una instancia $\mathbf{x}$, cada clasificador $h_i$ proporciona una predicción de clase $\hat{y}_i \in \{0, 1, 2\}$, y la predicción final es $\hat{y} = \text{mode}(\hat{y}_1, \hat{y}_2, \hat{y}_3, \hat{y}_4)$. En caso de empate, se utilizan las probabilidades predichas $P_i(y|\mathbf{x})$ para desempatar, seleccionando la clase con mayor suma de probabilidades. El ensemble por media de probabilidades calcula el promedio aritmético de las probabilidades predichas por cada modelo: $P_{\text{ensemble}}(y|\mathbf{x}) = \frac{1}{4}\sum_{i=1}^{4} P_i(y|\mathbf{x})$, asignando la clase $\hat{y} = \arg\max_y P_{\text{ensemble}}(y|\mathbf{x})$. Esta estrategia asume que todos los modelos tienen calibración similar y merecen igual confianza. El ensemble por mediana de probabilidades utiliza la mediana en lugar del promedio: $P_{\text{ensemble}}(y|\mathbf{x}) = \text{median}(P_1(y|\mathbf{x}), P_2(y|\mathbf{x}), P_3(y|\mathbf{x}), P_4(y|\mathbf{x}))$, proporcionando mayor robustez frente a predicciones extremas de modelos individuales que puedan estar mal calibrados.
-
-\subsection{Análisis Comparativo de los Métodos de Ensemble}
-
-La Figura~\ref{fig:ensemble_comparison} presenta las curvas ROC de los tres métodos de ensemble aplicados a los datos originales en el primer pliegue de validación cruzada, permitiendo una comparación visual directa de sus capacidades discriminativas.
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{../cross_validation_evaluation/VotingEnsemble_original_1.png}
-\caption{Ensemble por Votación (AUC macro: 0.99)}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{../cross_validation_evaluation/MeanEnsemble_original_1.png}
-\caption{Ensemble por Media (AUC macro: 0.99)}
-\end{subfigure}
-
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{../cross_validation_evaluation/MedianEnsemble_original_1.png}
-\caption{Ensemble por Mediana (AUC macro: 0.99)}
-\end{subfigure}
-\caption{Comparación de las curvas ROC de los tres métodos de ensemble en datos originales (fold 1). Los tres métodos alcanzan AUC prácticamente idénticos, sugiriendo convergencia de las estrategias cuando los clasificadores base están bien calibrados.}
-\label{fig:ensemble_comparison}
-\end{figure}
-
-El análisis visual de las curvas ROC en la Figura~\ref{fig:ensemble_comparison} revela una convergencia notable entre los tres métodos de ensemble, todos alcanzando un AUC macro de 0.99. Las curvas para cada clase individual son prácticamente indistinguibles entre los tres enfoques, lo que sugiere que, en este problema específico donde los cuatro clasificadores base están relativamente bien calibrados y producen predicciones consistentes, la estrategia particular de combinación tiene un impacto marginal. Esta convergencia no es universal: en problemas donde algunos clasificadores base están sistemáticamente mal calibrados (asignando probabilidades extremas 0 o 1 con alta frecuencia) o donde existe alta discrepancia entre las predicciones de diferentes modelos, el método de mediana podría mostrar ventajas al ser menos sensible a valores atípicos.
-
-\subsection{Rendimiento Cuantitativo de los Métodos de Ensemble}
-
-Aunque las curvas ROC sugieren convergencia visual, el análisis cuantitativo detallado revela diferencias sutiles pero significativas en términos de estabilidad y variabilidad del rendimiento a través de los pliegues de validación cruzada.
-
-El ensemble por votación alcanza un F1-score medio de 0.9665 $\pm$ 0.0238 en datos originales, ligeramente inferior al mejor modelo individual (KNN con 0.9799 $\pm$ 0.0183). Esta ligera degradación del rendimiento medio puede parecer contraintuitiva dado que la teoría de ensemble predice mejoras. Sin embargo, debe interpretarse en el contexto de un problema relativamente sencillo donde el mejor modelo individual ya alcanza un rendimiento cercano al óptimo teórico. En estas condiciones, la inclusión de modelos con rendimiento ligeramente inferior (como Naive Bayes con 0.9530) en el ensemble puede introducir errores adicionales que superan los beneficios de la diversidad. Más revelador es la comparación de desviaciones estándar: mientras KNN individual muestra una desviación de 0.0183, el ensemble por votación presenta 0.0238, un incremento del 30\%. Este resultado aparentemente paradójico se explica porque el ensemble hereda la variabilidad de todos sus componentes. Si diferentes modelos son inestables en distintos pliegues (por ejemplo, SVM puede tener bajo rendimiento en el pliegue 3 mientras Random Forest tiene problemas en el pliegue 5), el ensemble acumula estas variabilidades.
-
-El ensemble por media de probabilidades presenta un comportamiento prácticamente idéntico al de votación en la mayoría de configuraciones, con diferencias en el F1-score inferiores a 0.001. Esta convergencia se debe a que, cuando los clasificadores base producen probabilidades bien calibradas y las clases son mutuamente excluyentes, el promedio de probabilidades tiende a asignar valores más altos a la misma clase que recibiría más votos en un esquema de votación dura. La ventaja teórica de promediar probabilidades (proporcionar estimaciones más suaves y graduales de la confianza en las predicciones) se materializa principalmente en problemas con clases más ambiguas o cuando se requiere establecer umbrales de decisión personalizados.
-
-El ensemble por mediana de probabilidades utiliza la mediana en lugar del promedio para agregar las probabilidades de los clasificadores base. Teóricamente, la mediana proporciona mayor robustez frente a predicciones extremas de modelos individuales que puedan estar mal calibrados: un único modelo con predicción extremadamente confiada (probabilidad cercana a 1.0) o extremadamente dudosa (probabilidad cercana a 0.33 en un problema de tres clases) tiene menor influencia en el resultado final. En los datos analizados, los tres métodos de ensemble muestran rendimientos comparables, lo cual es esperable cuando los clasificadores base están relativamente bien calibrados y producen predicciones consistentes.
-
-\section{Reflexiones sobre los Resultados}
-
-\subsection{Interacción entre Algoritmos y Preprocesamiento}
-
-El análisis conjunto de los resultados obtenidos revela principios fundamentales sobre la interacción entre las características inherentes de los algoritmos de aprendizaje automático y las transformaciones aplicadas a los datos. Estos principios tienen implicaciones que trascienden el dataset Iris específico y proporcionan guías para la selección de métodos en dominios de aplicación diversos.
-
-El rendimiento excepcional de K-Nearest Neighbors en los datos originales (F1-score de 0.9799 $\pm$ 0.0183) no es accidental, sino que refleja una alineación fundamental entre los supuestos del algoritmo y la estructura intrínseca del problema. KNN asume que la similaridad en el espacio de características se corresponde con la similaridad en las etiquetas de clase. El dataset Iris, donde las tres especies forman clusters relativamente compactos con solapamiento mínimo (excepto entre Iris versicolor e Iris virginica en ciertas regiones del espacio), satisface este supuesto de manera casi ideal. La distancia euclidiana captura efectivamente la noción de similaridad morfológica entre especímenes, y la optimización del hiperparámetro $k$ (que en este trabajo se realiza evaluando valores impares desde 1 hasta la raíz cuadrada del número de muestras) permite adaptar el nivel de suavizado a la densidad local variable del espacio. En regiones donde Iris setosa forma un cluster denso y bien separado, valores pequeños de $k$ son suficientes para clasificación perfecta. En la frontera entre versicolor y virginica, valores algo mayores de $k$ proporcionan robustez ante la incertidumbre inherente.
-
-Sin embargo, el dominio de KNN no es universal y se desmorona parcialmente bajo reducción dimensional agresiva. La pérdida de 5.34 puntos porcentuales de F1-score al aplicar PCA con retención del 80\% de varianza (de 0.9799 a 0.9265) indica que ese 20\% de varianza descartada contiene información discriminativa no despreciable para este algoritmo. Esta sensibilidad contrasta con la robustez observada cuando se retiene el 95\% de varianza (F1-score de 0.9798, prácticamente idéntico a los datos sin reducción), sugiriendo un umbral crítico en la cantidad de información preservada. La explicación reside en cómo PCA afecta las distancias relativas entre instancias: la proyección a un subespacio de dimensionalidad reducida puede alterar el ordenamiento de vecinos, haciendo que instancias que eran vecinas cercanas en el espacio original se alejen en el espacio proyectado, y viceversa.
-
-La sensibilidad diferencial de Random Forest ante la reducción dimensional revela limitaciones fundamentales de los métodos basados en particiones axialmente alineadas del espacio de características. La degradación catastrófica observada con PCA al 80\% (F1-score de 0.8863, una pérdida de 8.02 puntos porcentuales) se debe a que los árboles de decisión construyen fronteras de decisión perpendiculares a los ejes de características. Cada nodo interno de un árbol evalúa una condición del tipo "si $x_i < \theta$ entonces rama izquierda, sino rama derecha". En el espacio original del dataset Iris, donde cada característica tiene interpretación semántica directa (longitud de sépalo, anchura de sépalo, etc.), estas particiones capturan relaciones biológicas significativas. Por ejemplo, un árbol podría aprender que "si longitud del pétalo < 2.5 cm entonces Iris setosa", regla que se corresponde directamente con una característica morfológica discriminativa. PCA destruye esta interpretabilidad al transformar las características en combinaciones lineales sin significado semántico directo. La primera componente principal podría ser algo como $0.52 \times \text{longitud\_sépalo} + 0.37 \times \text{anchura\_sépalo} + 0.77 \times \text{longitud\_pétalo} + 0.61 \times \text{anchura\_pétalo}$, y un umbral sobre esta combinación no se corresponde con ninguna característica morfológica interpretable. Más críticamente, cuando la reducción es agresiva (80\% de varianza), se descartan componentes que podrían capturar interacciones sutiles necesarias para discriminar entre versicolor y virginica, dejando a los árboles con información insuficiente para encontrar particiones efectivas.
-
-El comportamiento de Naive Bayes constituye el hallazgo más contraintuitivo y teóricamente iluminador del estudio. La reversión de la jerarquía de rendimiento en la configuración original\_PCA80, donde Naive Bayes (F1-score de 0.9330) supera a KNN (0.9265) y SVM (0.9129), desafía la expectativa inicial de que reducir información siempre degrada el rendimiento. La explicación reside en la naturaleza de la violación de supuestos del algoritmo. Naive Bayes modela la probabilidad de clase mediante $P(y|\mathbf{x}) \propto P(y) \prod_{i=1}^{n} P(x_i|y)$, asumiendo que las características $x_i$ son condicionalmente independientes dada la clase $y$. En el espacio original del dataset Iris, esta suposición es flagrantemente violada: la correlación entre longitud y anchura del pétalo es superior a 0.9, y existen correlaciones significativas entre todas las parejas de características. Esta violación introduce errores sistemáticos en las estimaciones de probabilidad. PCA, por construcción matemática, genera componentes principales ortogonales que son, por definición, no correlacionadas linealmente. Cuando la reducción es moderada (95\% de varianza), se retienen componentes que capturan tanto las variaciones principales como correlaciones secundarias complejas que Naive Bayes no puede modelar, resultando en degradación del rendimiento. Cuando la reducción es agresiva (80\% de varianza), se retienen solo las dos o tres primeras componentes principales, que son estrictamente ortogonales y capturan las direcciones de máxima varianza discriminativa. En este espacio reducido y decorrelacionado, la suposición de independencia de Naive Bayes se aproxima mejor a la realidad, compensando la pérdida de información con mejoras en la validez de los supuestos del modelo.
-
-\subsection{Métricas de Evaluación y sus Implicaciones}
-
-La divergencia observada entre el AUC y las métricas basadas en predicciones discretas (exactitud, precisión, recall, F1-score) ilustra una distinción conceptual fundamental en la evaluación de clasificadores. SVM alcanza el AUC más alto entre todos los métodos individuales (0.9967 $\pm$ 0.0033 en datos originales), indicando una capacidad casi perfecta para ordenar correctamente las instancias según su probabilidad de pertenencia a cada clase. En términos del AUC, SVM establece un ordenamiento donde casi todas las instancias verdaderamente positivas de cada clase reciben scores de probabilidad superiores a casi todas las instancias verdaderamente negativas de esa clase, independientemente del umbral de decisión aplicado. Sin embargo, este rendimiento excepcional en términos de discriminación no se traduce en superioridad proporcional en las predicciones discretas finales: el F1-score de SVM (0.9666) es inferior al de KNN (0.9799) en la misma configuración.
-
-Esta aparente paradoja refleja dos aspectos distintos del rendimiento de un clasificador. El AUC mide la capacidad del modelo para asignar scores ordenados correctamente a las instancias, una propiedad relevante en escenarios donde el umbral de decisión puede variar según consideraciones de costo-beneficio o donde se requiere un ranking de instancias más que clasificaciones binarias. En aplicaciones como filtrado de spam donde el costo de falsos positivos (marcar correos legítimos como spam) puede ser muy diferente del costo de falsos negativos (dejar pasar spam), un clasificador con alto AUC permite ajustar el umbral dinámicamente para optimizar según preferencias específicas. Las métricas basadas en predicciones discretas (exactitud, precisión, recall, F1-score) miden el rendimiento con un umbral de decisión fijo (típicamente 0.5 para probabilidades), aspecto relevante en escenarios donde las decisiones deben tomarse de forma automática sin intervención humana para ajustar umbrales.
-
-La convergencia de exactitud, precisión y recall observada en KNN (diferencias menores a 0.002 entre las tres métricas en datos originales) indica ausencia de sesgo sistemático hacia ninguna clase específica. Este equilibrio es notable dado que las tres clases del dataset Iris están perfectamente balanceadas (50 instancias cada una), pero el balanceo de datos no garantiza automáticamente predicciones balanceadas. Un clasificador podría, por ejemplo, tener alta precisión para Iris setosa (debido a su separabilidad lineal) pero bajo recall para Iris virginica (si tiende a confundirla con versicolor). El hecho de que KNN logre equilibrio entre estas métricas sugiere que el mecanismo de votación mayoritaria entre vecinos proporciona una calibración natural de las predicciones que respeta la distribución de clases subyacente.
-
-\subsection{Variabilidad y Robustez: Más Allá del Rendimiento Medio}
-
-Un aspecto frecuentemente subestimado en la evaluación de modelos de aprendizaje automático es la variabilidad del rendimiento a través de diferentes particiones de los datos. Mientras que el rendimiento medio proporciona una estimación del valor esperado, la desviación estándar cuantifica la incertidumbre asociada a esta estimación y, más fundamentalmente, la sensibilidad del modelo a las características específicas del conjunto de entrenamiento.
-
-KNN en datos originales no solo alcanza el mejor F1-score medio (0.9799), sino que también exhibe la menor desviación estándar (0.0183), inferior a la desviación de Random Forest (0.0238) en la misma configuración. Esta baja variabilidad indica que el rendimiento de KNN es robusto a la composición específica del conjunto de entrenamiento: independientemente de qué 80\% de las instancias se utilicen para entrenar y qué 20\% se reserven para test en cada pliegue de validación cruzada, el modelo alcanza rendimiento consistentemente alto. Esta propiedad es crucial en aplicaciones prácticas donde el conjunto de entrenamiento disponible puede ser una muestra sesgada de la población real, y donde las predicciones deben ser fiables incluso cuando los datos futuros presenten características ligeramente distintas.
-
-En contraste, Random Forest con PCA al 80\% muestra una desviación estándar de 0.0606, más de tres veces superior a la de KNN en datos originales. Esta alta variabilidad indica que el rendimiento del modelo fluctúa significativamente según el pliegue evaluado, sugiriendo que el algoritmo es sensible a las instancias específicas incluidas en el conjunto de entrenamiento. En términos prácticos, esto significa que un sistema basado en Random Forest con reducción dimensional agresiva podría tener rendimiento excelente en algunos escenarios y mediocre en otros estructuralmente similares, simplemente debido a variaciones estocásticas en los datos de entrenamiento disponibles. Esta inestabilidad representa un riesgo operacional que debe sopesarse contra cualquier ventaja en términos de rendimiento medio.
+El sistema de early stopping implementado en nuestro entrenamiento con una paciencia de 25 épocas ha funcionado correctamente, deteniendo el entrenamiento cuando no se observan mejoras significativas en el rendimiento de validación. Esto nos ha permitido ahorrar tiempo de computación y evitar el sobreajuste que podría producirse si continuásemos entrenando indefinidamente.
 
 \section{Conclusiones}
 
-Este estudio ha presentado un análisis exhaustivo y multifacético del entrenamiento, evaluación y combinación de modelos de clasificación aplicados al dataset Iris, revelando principios fundamentales sobre la interacción entre algoritmos de aprendizaje automático y las características de los datos procesados. Los resultados obtenidos proporcionan no solo respuestas cuantitativas sobre qué método es "mejor", sino, más críticamente, insights cualitativos sobre cuándo y por qué ciertos métodos superan a otros, y cómo las transformaciones de preprocesamiento alteran fundamentalmente el espacio de aprendizaje.
+En este trabajo hemos desarrollado y evaluado un sistema de clasificación de lesiones cutáneas basado en aprendizaje profundo utilizando la arquitectura YOLOv8. Partiendo del conjunto de datos ISIC 2019, hemos creado subconjuntos balanceados de entrenamiento y test, y hemos entrenado tres variantes del modelo YOLO con diferentes niveles de complejidad.
 
-En términos de rendimiento medio, K-Nearest Neighbors establece el estándar con un F1-score de 0.9799 $\pm$ 0.0183 en datos originales, superando a SVM (0.9666 $\pm$ 0.0236), Random Forest (0.9665 $\pm$ 0.0238) y Naive Bayes (0.9530 $\pm$ 0.0300). Sin embargo, la jerarquía de preferencia entre métodos no es universal y depende críticamente de la configuración de datos. SVM alcanza el AUC más alto (0.9967 $\pm$ 0.0033), demostrando capacidad de discriminación casi perfecta gracias al kernel RBF que proyecta los datos a un espacio de alta dimensionalidad donde las clases se vuelven linealmente separables. Esta superioridad en términos de AUC no se traduce necesariamente en mejores clasificaciones discretas con umbral fijo, ilustrando la distinción entre capacidad de ordenamiento y capacidad de clasificación.
+Nuestros resultados demuestran que las arquitecturas basadas en YOLO pueden aplicarse de forma efectiva al problema de clasificación de lesiones cutáneas, alcanzando valores de mAP50 de hasta 0.664 con el modelo YOLOv8m. El análisis comparativo entre los tres modelos revela un compromiso claro entre complejidad computacional y rendimiento, donde el modelo medium obtiene las mejores métricas de detección mientras que el modelo small logra la mejor accuracy en clasificación.
 
-El hallazgo más significativo desde una perspectiva de comprensión de algoritmos es la sensibilidad diferencial ante la reducción dimensional mediante PCA. Random Forest sufre la degradación más severa con PCA al 80\% (pérdida de 8.02 puntos porcentuales en F1-score), consecuencia directa de su dependencia en particiones axialmente alineadas del espacio de características que pierden significado semántico tras la transformación lineal de PCA. Naive Bayes exhibe el patrón contraintuitivo de mejorar relativamente con reducción dimensional agresiva, fenómeno explicado por la mayor validez de su suposición de independencia en un espacio de componentes principales ortogonales. KNN muestra robustez notable cuando se retiene el 95\% de varianza (F1-score prácticamente idéntico a datos sin reducción), pero degradación significativa con PCA al 80\%, revelando un umbral crítico de información mínima necesaria para preservar las relaciones de vecindad en el espacio de características.
+El estudio de las curvas de entrenamiento nos ha permitido verificar que nuestros modelos aprenden de forma adecuada sin evidencia significativa de sobreajuste. Las funciones de pérdida de entrenamiento y validación evolucionan de forma paralela, y las métricas de evaluación mejoran consistentemente a lo largo del proceso de entrenamiento hasta alcanzar un punto de convergencia.
 
-Los métodos de ensemble, aunque no proporcionan mejoras dramáticas en rendimiento medio en este problema relativamente sencillo donde los mejores modelos individuales ya alcanzan rendimientos cercanos al óptimo, ofrecen una estrategia práctica para combinar múltiples clasificadores. La convergencia de los tres métodos de ensemble (votación, media y mediana) hacia rendimientos similares en este problema específico sugiere que, cuando los clasificadores base están bien calibrados y producen predicciones consistentes, la estrategia particular de combinación tiene impacto marginal.
+El análisis de las matrices de confusión ha revelado los principales desafíos de nuestro sistema, identificando las clases que presentan mayor dificultad de discriminación. Las lesiones vasculares y el dermatofibroma son clasificadas con alta precisión, mientras que el melanoma, el nevus y el carcinoma basocelular presentan mayor confusión entre sí, reflejando la dificultad inherente de distinguir estas lesiones incluso para especialistas humanos.
 
-La metodología de validación cruzada estratificada con cinco pliegues, aplicada sobre nueve transformaciones diferentes del dataset (totalizando 225 evaluaciones independientes por algoritmo), proporciona estimaciones estadísticamente robustas del rendimiento esperado. Esta rigurosidad metodológica permite distinguir diferencias genuinas de rendimiento de fluctuaciones aleatorias, y asegura que las conclusiones extraídas sean generalizables a datos no vistos de la misma población.
+Como trabajo futuro, proponemos aumentar significativamente el tamaño del conjunto de entrenamiento para mejorar la capacidad de generalización de nuestros modelos. También consideramos la posibilidad de aplicar técnicas de data augmentation específicas para imágenes médicas y explorar arquitecturas alternativas como Vision Transformers. La incorporación de información clínica adicional, como la edad del paciente o la localización anatómica de la lesión, podría mejorar también el rendimiento del sistema.
 
-Desde una perspectiva práctica de selección de modelos, los resultados sugieren que no existe un "mejor" método universal, sino que la elección óptima depende del contexto específico de aplicación. Para escenarios donde se dispone de datos en su formato original con todas las características disponibles y se prioriza el rendimiento medio, KNN representa la opción más sólida. Para aplicaciones donde la dimensionalidad debe reducirse agresivamente (por restricciones computacionales, requisitos de almacenamiento, o necesidad de visualización), Naive Bayes emerge como alternativa robusta. Para casos donde se requiere maximizar la capacidad de discriminación (medida por AUC) y se dispone de recursos computacionales suficientes, SVM con kernel RBF es preferible. Los métodos de ensemble proporcionan una estrategia útil cuando se desea combinar las fortalezas de múltiples clasificadores.
-
-Las implicaciones de este estudio trascienden el dataset Iris específico y proporcionan guías metodológicas aplicables a problemas de clasificación en dominios diversos. El principio de que diferentes algoritmos poseen sensibilidades diferenciales a transformaciones de preprocesamiento, basadas en sus supuestos inductivos fundamentales, es universal. El hallazgo de que la reducción dimensional puede paradójicamente mejorar el rendimiento de algoritmos con supuestos simplificadores (como la independencia condicional en Naive Bayes) sugiere estrategias de preprocesamiento adaptadas al método de clasificación específico. La observación de que la variabilidad del rendimiento es a menudo tan informativa como el rendimiento medio enfatiza la importancia de evaluaciones estadísticamente rigurosas con validación cruzada en lugar de evaluaciones con una única partición train-test.
-
-Direcciones futuras de investigación podrían explorar métodos de ensemble más sofisticados que asignen pesos adaptativos a cada clasificador base según su rendimiento estimado en diferentes regiones del espacio de características, en lugar de asumir contribuciones uniformes. Técnicas de stacking, donde un meta-clasificador aprende a combinar las predicciones de los clasificadores base, podrían potencialmente superar los métodos de combinación simples evaluados en este estudio. La extensión del análisis a conjuntos de datos con mayor complejidad (más clases, mayor dimensionalidad, desbalanceo de clases, presencia de ruido) permitiría evaluar la generalización de los principios identificados y revelar comportamientos adicionales de los algoritmos bajo condiciones más adversas.
+Los resultados obtenidos en este proyecto demuestran el potencial del aprendizaje profundo para asistir en el diagnóstico de lesiones cutáneas, aunque es importante enfatizar que estos sistemas deben considerarse como herramientas de apoyo al diagnóstico clínico y no como sustitutos del criterio médico especializado.
 
 \begin{thebibliography}{9}
 
-\bibitem{sklearn}
-Pedregosa, F., et al. (2011).
-\textit{Scikit-learn: Machine Learning in Python}.
-Journal of Machine Learning Research, 12, 2825-2830.
+\bibitem{yolov8}
+Jocher, G., Chaurasia, A., \& Qiu, J. (2023).
+\textit{Ultralytics YOLOv8}.
+\url{https://github.com/ultralytics/ultralytics}
 
-\bibitem{breiman2001}
-Breiman, L. (2001).
-\textit{Random Forests}.
-Machine Learning, 45(1), 5-32.
+\bibitem{isic2019}
+Combalia, M., et al. (2019).
+\textit{BCN20000: Dermoscopic Lesions in the Wild}.
+arXiv preprint arXiv:1908.02288.
 
-\bibitem{cortes1995}
-Cortes, C., \& Vapnik, V. (1995).
-\textit{Support-vector networks}.
-Machine Learning, 20(3), 273-297.
+\bibitem{tschandl2018}
+Tschandl, P., Rosendahl, C., \& Kittler, H. (2018).
+\textit{The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions}.
+Scientific Data, 5, 180161.
 
-\bibitem{dietterich2000}
-Dietterich, T. G. (2000).
-\textit{Ensemble Methods in Machine Learning}.
-Multiple Classifier Systems, 1-15.
+\bibitem{esteva2017}
+Esteva, A., et al. (2017).
+\textit{Dermatologist-level classification of skin cancer with deep neural networks}.
+Nature, 542(7639), 115-118.
 
 \end{thebibliography}
 
